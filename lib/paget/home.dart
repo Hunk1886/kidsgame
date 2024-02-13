@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -24,62 +25,87 @@ class _HomeState extends State<Home> {
   int index = 0;
   final play = AudioPlayer();
   int playerScore = 0;
+  int seconds = 30; // Set the initial duration of the timer
+  late Timer timer;
+
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      setState(() {
+        if (seconds > 0) {
+          seconds--;
+        } else {
+          timer.cancel();
+          // Optionally, you can add logic here when the timer reaches 0.
+        }
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(' Game'),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
+      appBar: AppBar(
+        title: Text(' Game'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
               children: [
-                Icon(Icons.reviews, color: Colors.yellow),
+                Icon(Icons.rice_bowl_sharp, color: Colors.yellow),
                 SizedBox(width: 5),
                 Text(
-                  '$playerScore',
+                  'Score: $playerScore\nTime: $seconds',
                   style: TextStyle(fontSize: 20),
                 ),
+                
               ],
             ),
-            )
-          ],
-        ),
-        body: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: choices.keys.map((element) {
-                return Expanded(
-                  child: Draggable<String>(
-                    data: element,
-                    child: Movable(element),
-                    feedback: Movable(element),
-                    childWhenDragging: Movable('🐰'),
-                  ),
-                );
-              }).toList(),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: choices.keys.map((element) {
-                return buildTarget(element);
-              }).toList()
-                ..shuffle(Random(index)),
-            ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
+          )
+        ],
+      ),
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: choices.keys.map((element) {
+              return Expanded(
+                child: Draggable<String>(
+                  data: element,
+                  child: Movable(element),
+                  feedback: Movable(element),
+                  childWhenDragging: Movable('🐰'),
+                ),
+              );
+            }).toList(),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: choices.keys.map((element) {
+              return buildTarget(element);
+            }).toList()
+              ..shuffle(Random(index)),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
         child: Icon(Icons.refresh),
         onPressed: () {
           setState(() {
             score.clear();
             playerScore = 0; // Reset the score
+            seconds = 120; // Reset the timer
             index++;
           });
+          startTimer(); // Restart the timer
         },
       ),
     );
@@ -95,7 +121,6 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('Congratulations'),
-                
               ],
             ),
             alignment: Alignment.center,
@@ -107,6 +132,7 @@ class _HomeState extends State<Home> {
             color: choices[emoji],
             height: 80,
             width: 200,
+            
           );
         }
       },
